@@ -1,0 +1,43 @@
+current: pd_darwin
+
+clean: ; rm -f *.pd_linux *.o *.pd_darwin
+
+
+# ----------------------- Mac OSX -----------------------
+
+pd_darwin: ann_mlp.pd_darwin ann_td.pd_darwin ann_som.pd_darwin ann.pd_darwin
+
+.SUFFIXES: .pd_darwin
+
+
+# where are the PD header files?
+# leave it blank if it is a system directory (like /usr/local/include), 
+# 	since gcc 3.2 complains about it
+PDPATH=/Users/sebshader/codins/pdcodin/pd-0.44-0/src
+
+PD=/Applications/Pd-extended.app/Contents/Resources/bin/pd
+
+# where do the fann libraries reside? Download and build them:
+# http://downloads.sourceforge.net/sourceforge/fann/fann-1.2.0.tar.gz
+#FANNLIB=/Users/davidemorelli/Desktop/robaDavide/fann-1.2.0/src/fann.o
+FANNBASE=/Users/sebshader/Downloads/fann-1.2.1
+FANNLIB=$(FANNBASE)/src/fann.o \
+		$(FANNBASE)/src/fann_train.o \
+		$(FANNBASE)/src/fann_train_data.o \
+		$(FANNBASE)/src/fann_io.o \
+		$(FANNBASE)/src/fann_error.o \
+		$(FANNBASE)/src/fann_options.o 
+#FANNLIB=/usr/local/lib/libfann.a
+
+DARWININCLUDE =  -I../../src -I$(PDPATH) -I$(PDPATH)/src/include -I$(FANNBASE)/src/include
+
+DARWINCFLAGS = -DPD -O2 -Wall -W -Wshadow -Wstrict-prototypes \
+    -Wno-unused -Wno-parentheses -Wno-switch -arch x86_64 -arch i386
+
+.c.pd_darwin:
+	cc $(DARWINCFLAGS) $(DARWININCLUDE) -o $*.o -c $*.c
+#	cc -bundle  -bundle_loader $(PD) -flat_namespace -o $*.pd_darwin $(FANNLIB) *.o
+	cc -bundle -undefined suppress -flat_namespace -o $*.pd_darwin $(FANNLIB) *.o
+#	rm -f $*.o
+
+# $(FANNLIB)
